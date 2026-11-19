@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Family Guard — Parent Dashboard</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1b2430; --muted:#5d6b7a;
+    --line:#e6e9ee; --brand:#2e7d32; --brand-ink:#1b5e20; --accent:#2563eb;
+    --bar:#2e7d32; --danger:#c0392b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f141a; --card:#171f28; --ink:#e8edf2; --muted:#9aa7b4;
+           --line:#263039; --brand:#4caf50; --brand-ink:#81c784; --accent:#5b9dff;
+           --bar:#4caf50; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  header{background:var(--brand);color:#fff;padding:16px 16px;display:flex;
+         align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+  header .logo{width:26px;height:26px;border-radius:7px;background:#ffffff33;
+       display:grid;place-items:center;font-weight:700}
+  header h1{font-size:17px;margin:0;font-weight:650}
+  header .sub{font-size:12px;opacity:.85;margin-left:auto}
+  main{max-width:720px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:16px;margin-bottom:14px}
+  .hint{color:var(--muted);font-size:13px;line-height:1.5}
+  input,button{font:inherit}
+  input[type=password],input[type=text],input[type=number]{
+    width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg);color:var(--ink)}
+  button{cursor:pointer;border:none;border-radius:10px;padding:12px 16px;
+    background:var(--brand);color:#fff;font-weight:600}
+  button.secondary{background:transparent;color:var(--accent);border:1px solid var(--line)}
+  .row{display:flex;gap:10px;align-items:center}
+  .tabs{display:flex;gap:6px;margin:4px 0 14px;flex-wrap:wrap}
+  .tabs button{background:var(--card);color:var(--muted);border:1px solid var(--line);
+    padding:8px 14px;font-weight:600}
+  .tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .stat{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .stat .big{font-size:30px;font-weight:720}
+  .applist{list-style:none;margin:10px 0 0;padding:0}
+  .applist li{padding:10px 0;border-top:1px solid var(--line)}
+  .applist li:first-child{border-top:none}
+  .appname{display:flex;justify-content:space-between;font-weight:600;margin-bottom:6px}
+  .appmeta{color:var(--muted);font-size:12px}
+  .track{height:8px;background:var(--line);border-radius:6px;overflow:hidden}
+  .fill{height:100%;background:var(--bar);border-radius:6px}
+  .day-h{font-weight:700;margin:16px 0 6px;font-size:14px;color:var(--muted)}
+  .web{padding:10px 0;border-top:1px solid var(--line);font-size:14px;word-break:break-all}
+  .web:first-child{border-top:none}
+  .web .host{font-weight:600}
+  .web .time{color:var(--muted);font-size:12px}
+  .loc{padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+  .loc a{color:var(--accent);text-decoration:none}
+  .err{color:var(--danger);font-size:13px;margin-top:8px}
+  .center{text-align:center}
+  .muted-note{font-size:12px;color:var(--muted);text-align:center;margin-top:18px;line-height:1.5}
+  .hidden{display:none}
+  .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);
+    border-top-color:var(--brand);border-radius:50%;animation:s .8s linear infinite;vertical-align:-3px}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">FG</span>
+  <h1>Family Guard</h1>
+  <span class="sub" id="devSub"></span>
+</header>
+<main>
+
+  <!-- LOGIN -->
+  <section id="login" class="card">
+    <h2 style="margin:0 0 6px">Parent sign in</h2>
+    <p class="hint">Enter the PIN you set during setup to view this phone's reports.</p>
+    <div style="margin:14px 0 8px"><input id="pin" type="password" inputmode="numeric"
+         placeholder="PIN" autocomplete="off" /></div>
+    <button id="loginBtn" style="width:100%">Unlock</button>
+    <div id="loginErr" class="err"></div>
+  </section>
+
+  <!-- APP -->
+  <section id="app" class="hidden">
+    <div class="tabs">
+      <button data-tab="summary" class="active">Summary</button>
+      <button data-tab="usage">App usage</button>
+      <button data-tab="web">Web history</button>
+      <button data-tab="location">Location</button>
+      <button class="secondary" id="refreshBtn" style="margin-left:auto">Refresh</button>
+    </div>
+    <div id="view"></div>
+    <p class="muted-note">All data stays on your child's phone and is sent only to this
+       device over your local Wi-Fi. No cloud server is used.</p>
+  </section>
+</main>
+
+<script>
+"use strict";
+const S = { token:null, tab:"summary" };
+const $ = s => document.querySelector(s);
+
+function fmtDur(ms){
+  const min = Math.round(ms/60000);
+  const h = Math.floor(min/60), m = min%60;
+  return h>0 ? `${h}h ${m}m` : `${m}m`;
+}
+function fmtTime(ts){ return new Date(ts).toLocaleString(); }
+function fmtDay(ts){ return new Date(ts).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); }
+
+async function api(path){
+  const r = await fetch(path, { headers:{ Authorization:"Bearer "+S.token }});
+  if(r.status===401){ logout(); throw new Error("Session expired"); }
+  if(!r.ok) throw new Error("Request failed ("+r.status+")");
+  return r.json();
+}
+
+async function login(){
+  const pin = $("#pin").value.trim();
+  $("#loginErr").textContent="";
+  if(pin.length<4){ $("#loginErr").textContent="PIN must be at least 4 digits."; return; }
+  $("#loginBtn").innerHTML='<span class="spin"></span>';
+  try{
+    const r = await fetch("/api/auth",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({pin})});
+    if(!r.ok){ throw new Error(r.status===401?"Incorrect PIN.":"Sign-in failed."); }
+    const data = await r.json();
+    S.token = data.token;
+    try{ sessionStorage.setItem("fg_token", data.token); }catch(e){}
+    $("#login").classList.add("hidden");
+    $("#app").classList.remove("hidden");
+    render();
+  }catch(e){ $("#loginErr").textContent=e.message; }
+  finally{ $("#loginBtn").textContent="Unlock"; }
+}
+
+function logout(){
+  S.token=null; try{sessionStorage.removeItem("fg_token");}catch(e){}
+  $("#app").classList.add("hidden"); $("#login").classList.remove("hidden");
+}
+
+function setTab(t){
+  S.tab=t;
+  document.querySelectorAll(".tabs button[data-tab]").forEach(b=>
+    b.classList.toggle("active", b.dataset.tab===t));
+  render();
+}
+
+async function render(){
+  const v=$("#view"); v.innerHTML='<div class="card center"><span class="spin"></span></div>';
+  try{
+    if(S.tab==="summary") await renderSummary(v);
+    else if(S.tab==="usage") await renderUsage(v);
+    else if(S.tab==="web") await renderWeb(v);
+    else if(S.tab==="location") await renderLocation(v);
+  }catch(e){ v.innerHTML=`<div class="card"><div class="err">${e.message}</div></div>`; }
+}
+
+async function renderSummary(v){
+  const s = await api("/api/summary");
+  $("#devSub").textContent = s.deviceModel+" · Android "+s.androidVersion;
+  let warn="";
+  if(!s.usageAccessGranted){
+    warn=`<div class="card"><div class="err">Usage access is OFF on the child's phone,
+      so app-time data is empty. Grant it in Family Guard → Set up permissions.</div></div>`;
+  }
+  const maxMs = Math.max(1, ...(s.topAppsToday||[]).map(a=>a.totalMs));
+  const apps = (s.topAppsToday||[]).map(a=>`
+    <li><div class="appname"><span>${esc(a.label)}</span><span>${fmtDur(a.totalMs)}</span></div>
+    <div class="track"><div class="fill" style="width:${Math.round(a.totalMs/maxMs*100)}%"></div></div>
+    <div class="appmeta">${a.launches} opens</div></li>`).join("") ||
+    `<li class="hint">No usage recorded yet today.</li>`;
+  let loc="";
+  if(s.lastLocation){
+    const l=s.lastLocation;
+    loc=`<div class="card"><div class="stat"><span class="hint">Last known location</span></div>
+      <div class="loc">${l.lat.toFixed(5)}, ${l.lon.toFixed(5)} · ±${Math.round(l.accuracyM)}m
+      <br><span class="time">${fmtTime(l.timestamp)}</span><br>
+      <a href="https://maps.google.com/?q=${l.lat},${l.lon}" target="_blank">Open in Maps</a></div></div>`;
+  }
+  v.innerHTML = warn + `
+    <div class="card">
+      <div class="stat"><span class="hint">Screen time today</span></div>
+      <div class="big">${fmtDur(s.todayScreenTimeMs)}</div>
+    </div>
+    <div class="card"><div class="hint" style="margin-bottom:4px">Most used today</div>
+      <ul class="applist">${apps}</ul></div>` + loc;
+}
+
+async function renderUsage(v){
+  const d = await api("/api/usage?days=7");
+  if(!d.days || !d.days.length){ v.innerHTML='<div class="card hint">No app usage recorded yet.</div>'; return; }
+  v.innerHTML = d.days.map(day=>{
+    const maxMs=Math.max(1,...day.apps.map(a=>a.totalMs));
+    const items=day.apps.slice(0,12).map(a=>`
+      <li><div class="appname"><span>${esc(a.label)}</span><span>${fmtDur(a.totalMs)}</span></div>
+      <div class="track"><div class="fill" style="width:${Math.round(a.totalMs/maxMs*100)}%"></div></div>
+      <div class="appmeta">${a.launches} opens</div></li>`).join("");
+    return `<div class="day-h">${fmtDay(day.dayEpoch)} · ${fmtDur(day.totalMs)} total</div>
+      <div class="card"><ul class="applist">${items}</ul></div>`;
+  }).join("");
+}
+
+async function renderWeb(v){
+  const d = await api("/api/web?days=7");
+  if(!d.visits || !d.visits.length){ v.innerHTML='<div class="card hint">No browsing history captured yet. Make sure the web-logging accessibility service is enabled.</div>'; return; }
+  v.innerHTML = `<div class="card">` + d.visits.map(w=>`
+    <div class="web"><div class="host">${esc(w.host)}</div>
+    <div>${esc(w.url)}</div><div class="time">${fmtTime(w.timestamp)}</div></div>`).join("") + `</div>`;
+}
+
+async function renderLocation(v){
+  const d = await api("/api/locations?days=3");
+  if(!d.locations || !d.locations.length){ v.innerHTML='<div class="card hint">No location fixes yet. Make sure location permission is granted.</div>'; return; }
+  v.innerHTML = `<div class="card">` + d.locations.map(l=>`
+    <div class="loc">${l.lat.toFixed(5)}, ${l.lon.toFixed(5)} · ±${Math.round(l.accuracyM)}m
+    <br><span class="time">${fmtTime(l.timestamp)}</span> ·
+    <a href="https://maps.google.com/?q=${l.lat},${l.lon}" target="_blank">Map</a></div>`).join("") + `</div>`;
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// wire up
+$("#loginBtn").addEventListener("click", login);
+$("#pin").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
+document.querySelectorAll(".tabs button[data-tab]").forEach(b=>
+  b.addEventListener("click",()=>setTab(b.dataset.tab)));
+$("#refreshBtn").addEventListener("click", render);
+
+// resume session if token still cached
+try{
+  const t=sessionStorage.getItem("fg_token");
+  if(t){ S.token=t; fetch("/api/summary",{headers:{Authorization:"Bearer "+t}})
+    .then(r=>{ if(r.ok){ $("#login").classList.add("hidden"); $("#app").classList.remove("hidden"); render(); }
+               else { logout(); } }).catch(()=>{}); }
+}catch(e){}
+</script>
+</body>
+</html>

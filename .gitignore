@@ -1,0 +1,20 @@
+# Android
+android-child-app/.gradle/
+android-child-app/build/
+android-child-app/app/build/
+android-child-app/local.properties
+android-child-app/.idea/
+android-child-app/captures/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# iOS
+ios-parent-app/*.xcodeproj/
+ios-parent-app/DerivedData/
+ios-parent-app/**/xcuserdata/
+.DS_Store
+
+# Misc
+*.log

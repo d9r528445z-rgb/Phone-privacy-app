@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Family Guard</string>
+
+    <!-- Persistent notification (always visible — required & intentional) -->
+    <string name="notif_channel_name">Monitoring active</string>
+    <string name="notif_channel_desc">Shows while Family Guard parental monitoring is running.</string>
+    <string name="notif_title">Family Guard is active</string>
+    <string name="notif_text">This phone is monitored by a parent/guardian.</string>
+
+    <!-- Consent banner -->
+    <string name="consent_title">This device is monitored</string>
+    <string name="consent_body">A parent or guardian uses Family Guard to see which apps are used, websites visited, and this phone’s location. Monitoring is always on and this app stays visible. No message content, photos, microphone, or camera are collected.</string>
+    <string name="consent_agree">I understand</string>
+
+    <string name="accessibility_label">Family Guard web-address logging</string>
+    <string name="accessibility_desc">Records the web addresses visited in browsers so a parent can review browsing history. It does not read page content, passwords, or form fields.</string>
+</resources>
