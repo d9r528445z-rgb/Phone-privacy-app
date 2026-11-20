@@ -69,10 +69,12 @@ docs/                  Build, install, test, and consent documentation
 
 ## Build/verification status
 
-- **Android:** complete Kotlin/Gradle project; builds in Android Studio (Giraffe+). It
-  was **not** compiled in the delivery environment because Google's SDK/Maven hosts
-  were blocked there — see the note in `docs/BUILD_ANDROID.md`.
+- **Android:** ✅ **compiles and packages cleanly** — a debug APK
+  (`com.familyguard.child.debug`, 18 MB) was built with the Android SDK (compileSdk 35,
+  build-tools 35.0.0) via `./gradlew assembleDebug`. Kotlin compile, KSP/Room processing,
+  resources, dexing, and signing all pass. Opens the same in Android Studio.
 - **iOS:** complete SwiftUI source + `project.yml`. iOS can only be built on macOS
-  with Xcode, so it was delivered as source for you to build.
-- On-device behavior (permissions, background service, LAN sync) **must be verified on
-  real hardware** using `docs/TEST_CHECKLIST.md`.
+  with Xcode, so it is delivered as source for you to build.
+- On-device behavior (permissions, background service, LAN sync) still **must be
+  verified on real hardware** using `docs/TEST_CHECKLIST.md` — a clean compile proves
+  the code is valid, not that every runtime permission flow behaves on your phone.

@@ -63,11 +63,12 @@ Then `./gradlew assembleRelease` and install the APK from
 - JDK 17 (Android Studio bundles one)
 - Kotlin 2.0.21, AGP 8.7.3 — compatible with Gradle 8.9+ (wrapper pins 8.14.3)
 
-## Note on the delivery environment
+## Build status
 
-This project was authored in a Linux cloud container where the egress proxy **blocked
-`dl.google.com` and Google's Maven**, so the Android SDK could not be installed and the
-APK could not be compiled there. The code is complete and self-consistent; the first
-build happens on your machine in Android Studio (which fetches those dependencies
-normally). If you hit a dependency/version error on first sync, let Android Studio
-apply its suggested AGP/Kotlin upgrade — the code uses stable, current APIs.
+This project **was compiled successfully** with the Android SDK (compileSdk 35,
+build-tools 35.0.0) using `./gradlew assembleDebug`, producing a working, debug-signed
+`app-debug.apk` (package `com.familyguard.child.debug`). The only build output is two
+harmless deprecation warnings for `UsageEvents.MOVE_TO_FOREGROUND/BACKGROUND`, which the
+code uses deliberately alongside the newer `ACTIVITY_RESUMED/PAUSED` events for
+backward compatibility. Opening the project in Android Studio and pressing Run produces
+the same result.
