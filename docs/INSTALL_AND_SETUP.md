@@ -7,6 +7,34 @@
 - To install a sideloaded APK you'll need to allow **"Install unknown apps"** for the
   app you're installing from (Files/Chrome). Android walks you through this.
 
+### Play Protect warning ("harmful app") — expected, here's how to proceed
+
+Google Play Protect flags this app based on its **permissions** (accessibility + usage
++ background location), not its behavior. **Every** monitoring app trips this when
+sideloaded, including commercial parental-control apps. It is not a sign the app is
+broken or malicious — Play Protect simply can't see that *you* consent to it.
+
+To install your own app anyway:
+
+1. When the warning appears, tap **"More details"** → **"Install anyway"**.
+2. If you only see **OK/Cancel** (blocked outright): go to **Settings → Security (or
+   "Security & privacy") → Google Play Protect → ⚙ Settings → turn OFF "Scan apps with
+   Play Protect"**, install the APK, then turn it back on. Re-enabling it will **not**
+   remove the already-installed app (it may show a one-time warning you can dismiss).
+3. If after install you get a "harmful app" notification, open it and choose
+   **"Keep app" / "Keep anyway"**.
+
+> ⚠️ Only do this for apps you built/trust (like this one). Leaving Play Protect off
+> weakens security for the whole phone, so turn it back on afterward.
+
+### Android 13+: "Restricted settings" for the accessibility step
+
+On Android 13 and newer, you can't enable an accessibility service for a sideloaded app
+until you lift the restriction:
+
+1. **Settings → Apps → Family Guard → ⋮ (top-right menu) → "Allow restricted settings"**.
+2. Then enable the web-address logging service in Accessibility (step 2.3 below).
+
 ## 2. First-run setup (do this together with your child)
 
 The app opens to a setup flow. Being open about it is part of using it lawfully and keeps
